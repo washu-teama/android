@@ -34,19 +34,17 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
-import java.util.ArrayList;
+
 import java.util.Collections;
-import java.util.UUID;
 import java.util.prefs.Preferences;
 
 
 public class MainActivity extends AppCompatActivity {
     private String TAG = "WashuMainActivity";
 
-    //public static final String HOST = "http://15.164.7.33:8000";
-    public static final String HOST = "http://143.248.55.31:8000";
+    public static final String HOST = "http://15.164.7.33:8000";
+    //ublic static final String HOST = "http://143.248.55.31:8000";
 
 
     BluetoothManager btManager;
@@ -239,25 +237,22 @@ public class MainActivity extends AppCompatActivity {
 
         mWebView.addJavascriptInterface(new AndroidBridge(), "android");
         mWebView.loadUrl(HOST +"/user/login");
-        Log.i(TAG, "url: " + HOST +"/user/login");
+        Log.i(TAG, "url: " + HOST +"/user/login 1234213");
     }
     void bluetoothSetting() {
-        btManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
-        btAdapter = btManager.getAdapter();
-        btScanner = btAdapter.getBluetoothLeScanner();
 
-
-        if (btAdapter != null && !btAdapter.isEnabled()) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent,REQUEST_ENABLE_BT);
-        }
 
         // Make sure we have access coarse location enabled, if not, prompt the user to enable it
         if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("This app needs location access");
             builder.setMessage("Please grant location access so this app can detect peripherals.");
-            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startScanning();
+                }
+            });
             builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
@@ -265,31 +260,37 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             builder.show();
+        } else {
+            startScanning();
         }
-        startScanning();
     }
 
     // Device scan callback.
     private ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            if(result.getDevice().getName() != null){
-                ContentValues values = new ContentValues();
+            ContentValues values = new ContentValues();
 
-                Preferences prefs = Preferences.userNodeForPackage(MainActivity.class);
-
-                values.put("id", prefs.get("id", ""));
-                values.put("pwd", prefs.get("password", ""));
-                values.put("uuid", getTelePhoneUUID());
-                values.put("device_addr", result.getDevice().getAddress());
+            SharedPreferences settings = getSharedPreferences("WASHU_ID_WPD", MODE_PRIVATE);
+            values.put("id", settings.getString("id", ""));
+            values.put("pwd", settings.getString("password", ""));
+            values.put("uuid", getTelePhoneUUID());
+            values.put("device_addr", result.getDevice().getAddress());
+            if(result.getDevice().getName() != null)
                 values.put("device_name", result.getDevice().getName());
-                NetworkTask task = new NetworkTask(HOST+"/user/IAmHere/", values);
-                task.execute();
-                Log.i(TAG, "Device Name: " + result.getDevice().getName() + " mac: " + result.getDevice().getAddress());
-            }
+            else
+                values.put("device_name", "");
 
+            NetworkTask task = new NetworkTask(HOST+"/user/IAmHere/", values);
+            task.execute();
+            Log.i(TAG, "Device Name: " + result.getDevice().getName() + " mac: " + result.getDevice().getAddress());
         }
     };
+
+    @Override
+    public boolean showAssist(Bundle args) {
+        return super.showAssist(args);
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -307,6 +308,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onDismiss(DialogInterface dialog) {
+
                         }
 
                     });
@@ -318,14 +320,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startScanning() {
-        ScanFilter.Builder builder = new ScanFilter.Builder();
+        btManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
+        btAdapter = btManager.getAdapter();
+        btScanner = btAdapter.getBluetoothLeScanner();
+
+        if (btAdapter != null && !btAdapter.isEnabled()) {
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent,REQUEST_ENABLE_BT);
+        }
+
+        ScanFilter.Builder builder =  new ScanFilter.Builder();
         builder.setDeviceAddress("B8:27:EB:7C:B7:7B");
         ScanFilter filter = builder.build();
-        ArrayList<ScanFilter> filters = new ArrayList<ScanFilter>();
-        filters.add(filter);
+
         Log.i(TAG, "start scanning");
         ScanSettings settings = new ScanSettings.Builder().build();
-        btScanner.startScan(Collections.singletonList(new ScanFilter.Builder().setDeviceAddress("B8:27:EB:7C:B7:7B").build()),
+        btScanner.startScan(Collections.singletonList(filter),
                 settings,leScanCallback);
     }
 
@@ -356,10 +366,11 @@ public class MainActivity extends AppCompatActivity {
     private class AndroidBridge {
         @JavascriptInterface
         public void setLoginInfo(final String id, final String password) {
-            Preferences prefs = Preferences.userNodeForPackage(MainActivity.class);
-            prefs.put("id", id);
-            prefs.put("password", password);
-            Toast.makeText(getApplicationContext(), String.format("id: %s password: %s",id, password), Toast.LENGTH_LONG).show();
+            SharedPreferences settings = getSharedPreferences("WASHU_ID_WPD", MODE_PRIVATE);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("id", id);
+            editor.putString("password", password);
+            editor.apply();
         }
     }
 
