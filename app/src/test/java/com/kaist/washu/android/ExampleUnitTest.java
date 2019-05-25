@@ -1,4 +1,4 @@
-package com.kaist.washu;
+package com.kaist.washu.android;
 
 import org.junit.Test;
 

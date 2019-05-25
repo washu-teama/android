@@ -1,4 +1,4 @@
-package com.kaist.washu;
+package com.kaist.washu.android;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.kaist.washu", appContext.getPackageName());
+        assertEquals("com.kaist.washu.android", appContext.getPackageName());
     }
 }
