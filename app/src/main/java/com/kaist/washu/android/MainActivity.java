@@ -339,14 +339,23 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(enableIntent,REQUEST_ENABLE_BT);
         }
 
-        ScanFilter.Builder builder =  new ScanFilter.Builder();
-        builder.setDeviceAddress("B8:27:EB:7C:B7:7B");
-        ScanFilter filter = builder.build();
+        //ScanFilter.Builder builder =  new ScanFilter.Builder();
+        //builder.setDeviceAddress("B8:27:EB:7C:B7:7B");
+        //ScanFilter filter = builder.build();
+        
+        //modified 3lines
+        List<ScanFilter> filters = new ArrayList<>();
+        ScanFilter scan_filter = new ScanFilter.Builder().setDeviceAddress( "B8:27:EB:7C:B7:7B" ).build();
+        filters.add( scan_filter );
 
         Log.i(TAG, "start scanning");
-        ScanSettings settings = new ScanSettings.Builder().build();
-        btScanner.startScan(Collections.singletonList(filter),
-                settings,leScanCallback);
+        //ScanSettings settings = new ScanSettings.Builder().build();
+        //btScanner.startScan(Collections.singletonList(filter), settings,leScanCallback);
+        //modified 2lines
+        ScanSettings settings = (new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)).build();
+        btScanner.startScan(filters, settings,leScanCallback);
+        
+        
     }
 
     String getTelePhoneUUID(){
