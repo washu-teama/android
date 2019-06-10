@@ -36,7 +36,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 
