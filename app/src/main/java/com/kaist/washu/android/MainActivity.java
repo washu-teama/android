@@ -59,19 +59,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide(); //<< this
         setContentView(R.layout.activity_main);
-        if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("This app needs phone state information");
-            builder.setMessage("Please grant phone state information access so this app can detect peripherals.");
-            builder.setPositiveButton(android.R.string.ok, null);
-            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
-                }
-            });
-            builder.show();
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            // Make sure we have access coarse location enabled, if not, prompt the user to enable it
+            if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs phone state information");
+                builder.setMessage("Please grant phone state information access so this app can detect peripherals.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+                    }
+                });
+                builder.show();
+            }
         }
+
 
         bluetoothSetting();
         webBiewSetting();
@@ -241,28 +246,33 @@ public class MainActivity extends AppCompatActivity {
     }
     void bluetoothSetting() {
 
-
-        // Make sure we have access coarse location enabled, if not, prompt the user to enable it
-        if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("This app needs location access");
-            builder.setMessage("Please grant location access so this app can detect peripherals.");
-            builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    startScanning();
-                }
-            });
-            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
-                }
-            });
-            builder.show();
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            // Make sure we have access coarse location enabled, if not, prompt the user to enable it
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs location access");
+                builder.setMessage("Please grant location access so this app can detect peripherals.");
+                builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startScanning();
+                    }
+                });
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+                    }
+                });
+                builder.show();
+            } else {
+                startScanning();
+            }
         } else {
             startScanning();
+
         }
+
     }
 
     // Device scan callback.
@@ -341,25 +351,33 @@ public class MainActivity extends AppCompatActivity {
 
     String getTelePhoneUUID(){
         String deviceId;
-        if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("This app needs phone state information");
-            builder.setMessage("Please grant phone state information access so this app can detect peripherals.");
-            builder.setPositiveButton(android.R.string.ok, null);
-            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
-                }
-            });
-            builder.show();
-            return "";
-        } else{
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            // Make sure we have access coarse location enabled, if not, prompt the user to enable it
+            if (this.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs phone state information");
+                builder.setMessage("Please grant phone state information access so this app can detect peripherals.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+                    }
+                });
+                builder.show();
+                return "";
+            } else{
+            }
         }
+
         if (Build.VERSION.SDK_INT >= 26) {
             deviceId = getSystemService(TelephonyManager.class).getImei();
-        }else{
-            deviceId = getSystemService(TelephonyManager.class).getDeviceId();
+        }else if (Build.VERSION.SDK_INT >= 21) {
+            TelephonyManager tm = (TelephonyManager) getSystemService(this.TELEPHONY_SERVICE);
+            deviceId = tm.getDeviceId();
+        }else {
+            deviceId = null;
         }
         return deviceId;
     }
