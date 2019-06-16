@@ -45,7 +45,7 @@ import java.util.prefs.Preferences;
 public class MainActivity extends AppCompatActivity {
     private String TAG = "WashuMainActivity";
 
-    public static final String HOST = "http://15.164.7.33:8000";
+    public static final String HOST = "https//15.164.7.33:8000";
     //ublic static final String HOST = "http://143.248.55.31:8000";
 
 
